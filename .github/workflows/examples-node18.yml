@@ -14,7 +14,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        dir: [.interop/standalone-server-node18]
+        dir: [standalone-server-node18]
         node-start: ['18.x']
         os: [ubuntu-latest]
     services:
