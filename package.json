@@ -34,7 +34,7 @@
     "**/@typescript-eslint/parser": "^4.11.1"
   },
   "engines": {
-    "node": ">16"
+    "node": ">= 16"
   },
   "scripts": {
     "lerna": "lerna",
