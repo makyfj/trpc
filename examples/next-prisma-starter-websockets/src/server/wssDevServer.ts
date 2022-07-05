@@ -4,9 +4,10 @@ import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import fetch from 'node-fetch';
 import ws from 'ws';
 
-if (!global.fetch) {
-  (global as any).fetch = fetch;
-}
+const globalAny = globalThis as any; // 🚨 unsafe, don't do this in production
+if (!globalAny.AbortController) globalAny.AbortController = AbortController;
+if (!globalAny.fetch) globalAny.fetch = fetch; // 🙌 Node v18 has built-in fetch
+
 const wss = new ws.Server({
   port: 3001,
 });

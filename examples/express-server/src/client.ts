@@ -6,8 +6,9 @@ import fetch from 'node-fetch';
 import type { AppRouter } from './server';
 
 // polyfill
-global.AbortController = AbortController;
-global.fetch = fetch as any;
+const globalAny = globalThis as any; // 🚨 unsafe, don't do this in production
+if (!globalAny.AbortController) globalAny.AbortController = AbortController;
+if (!globalAny.fetch) globalAny.fetch = fetch; // 🙌 Node v18 has built-in fetch
 
 const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms));
 

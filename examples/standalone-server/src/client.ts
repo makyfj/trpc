@@ -9,10 +9,10 @@ import ws from 'ws';
 import type { AppRouter } from './server';
 
 // polyfill fetch & websocket
-const globalAny = global as any;
-globalAny.AbortController = AbortController;
-globalAny.fetch = fetch;
-globalAny.WebSocket = ws;
+const globalAny = globalThis as any; // 🚨 unsafe, don't do this in production
+if (!globalAny.AbortController) globalAny.AbortController = AbortController;
+if (!globalAny.fetch) globalAny.fetch = fetch; // 🙌 Node v18 has built-in fetch
+if (!globalAny.WebSocket) globalAny.WebSocket = ws;
 
 async function main() {
   // http calls

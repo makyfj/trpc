@@ -1,0 +1,68 @@
+name: Testing
+
+on: [push]
+
+jobs:
+  e2e:
+    strategy:
+      matrix:
+        example:
+          - express-server
+          - fastify-server
+          - next-prisma-starter
+          - next-prisma-starter-websockets
+          - next-prisma-todomvc
+          - standalone-server
+        version:
+          - 14
+          - 16
+          - 17
+          - 18
+        runner:
+          - ubuntu-latest
+    name: E2E (v${{ matrix.version }} on ${{ matrix.runner }}) for ${{ matrix.example }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.20.0-focal
+      options: --user 1001
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright
+      DATABASE_URL: postgresql://postgres:@postgres:5432/trpcdb
+      NEXTAUTH_SECRET: supersecret
+    services:
+      postgres:
+        image: postgres:14.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: trpcdb
+        ports:
+          - 5432:5432
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v3
+      - name: Setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.version }}
+          cache: yarn
+      - name: Install
+        uses: nick-fields/retry@v2 # Retry yarn installation when an http download fails (often due to rate limiting)
+        with:
+            timeout_minutes: 5
+            max_attempts: 3
+            command: yarn --frozen-lockfile
+            retry_wait_seconds: 60
+      - name: Cache Next.js
+        uses: actions/cache@v2
+        with:
+            path: ${{ github.workspace }}/examples/${{ matrix.example }}/.next/cache
+            # Generate a new cache whenever packages or source files change.
+            key: ${{ matrix.example }}-${{ runner.os }}-v${{ matrix.version }}-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+            # If source files changed but packages didn't, rebuild from a prior cache.
+            restore-keys: ${{ matrix.example }}-${{ runner.os }}-v${{ matrix.version }}-${{ hashFiles('**/yarn.lock') }}-
+      - name: Lint
+        run: cd examples/${{ matrix.example }} && cat package.json | if grep --silent '"lint"'; then yarn lint; fi
+      - run: yarn --cwd examples/${{ matrix.example }} build
+      - run: yarn --cwd examples/${{ matrix.example }} test-start
+      - run: yarn --cwd examples/${{ matrix.example }} test-dev

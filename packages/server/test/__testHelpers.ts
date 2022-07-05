@@ -18,8 +18,10 @@ import {
 } from '../src/adapters/standalone';
 import { WSSHandlerOptions, applyWSSHandler } from '../src/adapters/ws';
 
-(global as any).fetch = fetch;
-(global as any).AbortController = AbortController;
+const globalAny = globalThis as any; // 🚨 unsafe, don't do this in production
+if (!globalAny.AbortController) globalAny.AbortController = AbortController;
+if (!globalAny.fetch) globalAny.fetch = fetch; // 🙌 Node v18 has built-in fetch
+
 export function routerToServerAndClient<TRouter extends AnyRouter>(
   router: TRouter,
   opts?: {
