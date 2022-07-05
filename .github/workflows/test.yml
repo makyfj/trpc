@@ -2,6 +2,11 @@ name: Testing
 
 on: [push]
 
+# Cancel previous runs of this workflow for the same ref
+concurrency:
+    group: ${{ github.workflow }}-${{ github.head_ref || github.ref || github.run_id }}
+    cancel-in-progress: true
+
 jobs:
   e2e:
     strategy:
@@ -14,9 +19,7 @@ jobs:
           - next-prisma-todomvc
           - standalone-server
         version:
-          - 14
           - 16
-          - 17
           - 18
         runner:
           - ubuntu-latest
