@@ -6,9 +6,10 @@ import { createWSClient, wsLink } from '@trpc/client/links/wsLink';
 import ws from 'ws';
 import type { AppRouter } from './server';
 
-// polyfill fetch & websocket
+// polyfill WebSocket
 const globalAny = global as any;
 globalAny.WebSocket = ws;
+// 🎉 `fetch` doesn't need polyfill b/c this is node 18
 
 async function main() {
   // http calls
